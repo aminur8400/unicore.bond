@@ -1,0 +1,33 @@
+{
+  "name": "unicore-app",
+  "version": "0.0.1",
+  "description": "Unicore_Otp",
+  "productName": "Unicore App",
+  "author": "Md. Aminur Rahman",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "test": "echo \"No test specified\" && exit 0",
+    "dev": "quasar dev",
+    "build": "quasar build",
+    "postinstall": "quasar prepare"
+  },
+  "dependencies": {
+    "@quasar/extras": "^1.16.4",
+    "@supabase/supabase-js": "^2.90.1",
+    "pinia": "^3.0.1",
+    "quasar": "^2.16.0",
+    "vue": "^3.5.22",
+    "vue-router": "^4.0.0"
+  },
+  "devDependencies": {
+    "@quasar/app-vite": "^2.1.0",
+    "autoprefixer": "^10.4.2",
+    "postcss": "^8.4.14"
+  },
+  "engines": {
+    "node": "^28 || ^26 || ^24 || ^22 || ^20",
+    "npm": ">= 6.13.4",
+    "yarn": ">= 1.21.1"
+  }
+}
