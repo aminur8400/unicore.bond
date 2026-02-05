@@ -43,7 +43,25 @@
 
             <div v-else :class="['bot-msg-bubble q-pa-md q-mb-md shadow-1', msg.type === 'assigned' ? 'bg-green-1' : 'bg-white']">
 
-              <div v-if="msg.type === 'bot'" v-html="msg.text" class="text-body2"></div>
+              <div v-if="msg.type === 'bot'" class="bot-message text-body2">
+
+                <!-- Full bot message -->
+                <div>{{ msg.text }}</div>
+
+                <!-- OTP copy button -->
+                <q-chip
+                  v-if="extractOtp(msg.text)"
+                  clickable
+                  color="primary"
+                  text-color="white"
+                  class="q-mt-xs"
+                  @click="copyOtp(extractOtp(msg.text))"
+                >
+                  📋 Copy code: {{ extractOtp(msg.text) }}
+                </q-chip>
+
+              </div>
+
 
               <div v-if="msg.type === 'assigned'">
                 <div class="text-weight-bold q-mb-xs text-primary">✅ Number Assigned!</div>
@@ -124,7 +142,6 @@ const activeTab = ref('bot')
 const messages = ref([])
 const loadingNumber = ref(false)
 const countryList = ref([])
-let smsSubscription = null
 
 const PAGE_SIZE = 15
 let oldestTimestamp = null
@@ -137,65 +154,35 @@ const scrollToBottom = (behavior = 'smooth') => {
   })
 }
 
-// REALTIME SUBSCRIPTION LOGIC
-const subscribeToSms = () => {
-  if (smsSubscription) supabase.removeChannel(smsSubscription)
 
-  smsSubscription = supabase
-    .channel('sms-realtime')
+let botSubscription = null
+
+const subscribeToBotMessages = () => {
+  if (botSubscription) supabase.removeChannel(botSubscription)
+
+  botSubscription = supabase
+    .channel('bot-messages-realtime')
     .on(
       'postgres_changes',
       {
         event: 'INSERT',
         schema: 'public',
-        table: 'sms_messages',
-        filter: `assigned_user_id=eq.${auth.user.id}`
+        table: 'bot_messages',
+        filter: `user_id=eq.${auth.user.id}`
       },
       (payload) => {
-        handleIncomingSms(payload.new)
+        // Prevent duplicates
+        const exists = messages.value.find(m => m.id === payload.new.id)
+        if (!exists) {
+          messages.value.push(payload.new)
+          scrollToBottom()
+        }
       }
     )
     .subscribe()
 }
 
-const handleIncomingSms = async (sms) => {
-  const smsHtml = `
-    <div class="sms-card">
-      <div class="text-weight-bold text-positive row items-center q-mb-xs">
-        <q-icon name="message" class="q-mr-xs" /> New SMS Received
-      </div>
-      <div class="otp-display q-my-sm text-center text-h6">
-        ${sms.otp || '---'}
-      </div>
-      <div class="text-caption text-grey-9">${sms.message}</div>
-      <div class="text-right text-caption text-grey-6 q-mt-xs" style="font-size: 10px;">
-        ${new Date(sms.created_at).toLocaleTimeString()}
-      </div>
-    </div>
-  `
 
-  // 1. Persist to bot_messages table so it remains on refresh
-  const { data: savedMsg } = await supabase
-    .from('bot_messages')
-    .insert([{
-      user_id: auth.user.id,
-      type: 'bot',
-      text: smsHtml
-    }])
-    .select()
-    .single()
-
-  if (savedMsg) messages.value.push(savedMsg)
-
-  $q.notify({
-    message: `New Code: ${sms.otp}`,
-    color: 'positive',
-    icon: 'notifications_active',
-    position: 'top'
-  })
-
-  scrollToBottom()
-}
 
 watch(activeTab, async (newTab) => {
   if (newTab === 'bot' || newTab === 'group') {
@@ -259,20 +246,55 @@ const onLoadMore = async (index, done) => {
 const sendGetNumber = async () => {
   loadingNumber.value = true
   try {
-    const { data: userMsg } = await supabase.from('bot_messages').insert([{ user_id: auth.user.id, type: 'user', text: 'Get Number' }]).select().single()
-    if (userMsg) messages.value.push(userMsg)
+    // Insert user message
+    await supabase.from('bot_messages').insert([{
+      user_id: auth.user.id,
+      type: 'user',
+      text: 'Get Number'
+    }])
 
-    const botReply = { user_id: auth.user.id, type: 'bot', text: 'Select a country:', data: { countries: countryList.value } }
-    const { data: botMsg } = await supabase.from('bot_messages').insert([botReply]).select().single()
-    if (botMsg) messages.value.push(botMsg)
+    // Insert bot reply message
+    await supabase.from('bot_messages').insert([{
+      user_id: auth.user.id,
+      type: 'bot',
+      text: 'Select a country:',
+      data: { countries: countryList.value }
+    }])
 
-    scrollToBottom()
+    // No local push here — Realtime subscription will add them
   } catch (err) {
     $q.notify({ type: 'negative', message: err.message })
   } finally {
     loadingNumber.value = false
   }
 }
+
+
+const copyOtp = async (otp) => {
+  try {
+    await copyToClipboard(otp)
+    $q.notify({
+      type: 'positive',
+      message: `Code ${otp} copied`,
+      position: 'top'
+    })
+  } catch {
+    $q.notify({
+      type: 'negative',
+      message: 'Failed to copy',
+      position: 'top'
+    })
+  }
+}
+
+
+const extractOtp = (text) => {
+  if (!text) return null
+  const match = text.match(/\b\d{4,8}\b/) // matches 4–8 digit OTP
+  return match ? match[0] : null
+}
+
+
 
 const selectCountry = async (country, msgId) => {
   const tempId = Date.now()
@@ -338,11 +360,11 @@ const logoutUser = async () => {
 onMounted(async () => {
   await loadCountries()
   await loadInitialMessages()
-  subscribeToSms()
+  subscribeToBotMessages()
 })
 
 onUnmounted(() => {
-  if (smsSubscription) supabase.removeChannel(smsSubscription)
+  if (botSubscription) supabase.removeChannel(botSubscription)
 })
 </script>
 

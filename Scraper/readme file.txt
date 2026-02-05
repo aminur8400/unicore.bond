@@ -26,7 +26,7 @@ ami8400@
 
 group Chat ID: -1003097264552
 
-
+5154620036
 
 
 allow pasting
@@ -55,15 +55,29 @@ allow pasting
 
 ----------------------------
 
-BENIN 3712 - melbet - 2290193422274
-BENIN 866 - melbet - 2290140800901
-IVORY COAST 5742 - melbet - 2250706219855
-TANZANIA 1121 - facebook - 255779257050
+BANGLADESH 38505 - melbet - 
 
 ----------------------------
-BENIN 674 - melbet - 2290192262783
-BENIN 3851 - facebook - 2290193561659
 
-------------
 
-BENIN 2041 - melbet - 2290193381907
+<tr class="border-bottom border-200 backgroundAnimated">
+                                    <td>
+                                        <div class="d-flex align-items-center position-relative">
+                                        <img class="rounded-1 border border-200" onclick="TerminationDetials(undefined)" src="https://cdnjs.cloudflare.com/ajax/libs/flag-icon-css/3.3.0/flags/4x3/bd.svg" width="60" alt="">
+                                            <div class="flex-1 ml-3">
+                                                <h6 class="mb-1 fw-semi-bold"><a class="text-dark stretched-link" href="#!" onclick="copyText(event)">BANGLADESH 45428</a></h6>
+                                                <p class="fw-semi-bold mb-0 CopyText text-500" onclick="copyText(event)">8801872980721</p>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td class="align-middle pe-card">
+                                        <div class="">
+                                            <div class="fw-semi-bold ms-2">Melbet</div>
+                                        </div>
+                                    </td>
+                                    <td class="align-middle text-end fw-semi-bold"><label class="bg-success badge p-2 rounded-1">Paid</label></td>
+                                    <td class="align-middle text-end fw-semi-bold"><label class="bg-danger badge p-2 rounded-1">No</label></td>
+                                    <td class="align-middle text-end fw-semi-bold">&lt;#&gt; Verification code 69096
+sOblocTkXcx</td>
+                                  
+                                </tr>
